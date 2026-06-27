@@ -54,16 +54,15 @@ class GeminiRepository {
         }
 
         val prompt = """
-            Jelaskan makna rohani dan konteks teologis dari ayat Alkitab berikut dalam bahasa Indonesia yang penuh kasih, hangat, dan mendalam. 
-            Berikan juga refleksi praktis (renungan singkat) untuk kehidupan sehari-hari.
-            
+            Jelaskan makna rohani dan konteks teologis dari ayat Alkitab berikut secara ringkas, padat, mendalam, dan hangat dalam bahasa Indonesia.
+            Berikan penjelasan singkat (maksimal 2 paragraf pendek) dan 1 refleksi praktis yang aplikatif untuk kehidupan sehari-hari.
+            PENTING: Jawablah dengan sangat cepat, padat, dan langsung ke inti penjelasan.
+
             Ayat: $book $chapter:$verseNumber
             Teks: "$text"
-            
-            Format respons Anda dengan rapi menggunakan paragraf dan poin-poin penting.
         """.trimIndent()
 
-        callAI(prompt)
+        callAI(prompt, maxTokens = 400)
     }
 
     /**
@@ -76,7 +75,9 @@ class GeminiRepository {
 
         // Format history
         val historyPrompt = StringBuilder()
-        historyPrompt.append("Anda adalah 'Asisten Alkitab AI'—seorang pembimbing rohani dan teolog Kristen Protestan yang ramah, bijaksana, dan berpengetahuan luas. Bantu pengguna memahami Alkitab versi Terjemahan Baru (TB), sejarah gereja, makna ayat, teologi, atau memberikan konseling rohani yang menguatkan.\n\n")
+        historyPrompt.append("Anda adalah 'Asisten Alkitab AI'—seorang pembimbing rohani dan teolog Kristen Protestan yang ramah, bijaksana, dan ringkas. ")
+        historyPrompt.append("Bantu pengguna memahami Alkitab Terjemahan Baru (TB). ")
+        historyPrompt.append("PENTING: Berikan jawaban yang SANGAT RINGKAS, PADAT, dan LANGSUNG KE INTI PERTANYAAN (maksimal 2-3 paragraf pendek atau poin-poin singkat). Hindari penjelasan yang terlalu panjang agar respon dapat dimuat dengan sangat cepat di layar handphone.\n\n")
         
         chatHistory.forEach { (role, msg) ->
             if (role == "user") {
@@ -88,7 +89,7 @@ class GeminiRepository {
         historyPrompt.append("Pengguna: $question\n")
         historyPrompt.append("Asisten:")
 
-        callAI(historyPrompt.toString())
+        callAI(historyPrompt.toString(), maxTokens = 450)
     }
 
     /**
@@ -144,21 +145,24 @@ class GeminiRepository {
         return list
     }
 
-    private suspend fun callAI(prompt: String): String {
+    private suspend fun callAI(prompt: String, maxTokens: Int? = null): String {
         val hasOpenRouter = openRouterApiKey.isNotEmpty() && openRouterApiKey != "MY_OPENROUTER_API_KEY" && !openRouterApiKey.contains("PLACEHOLDER")
         return if (hasOpenRouter) {
-            callOpenRouter(prompt)
+            callOpenRouter(prompt, maxTokens)
         } else {
-            callGemini(prompt)
+            callGemini(prompt, maxTokens)
         }
     }
 
-    private suspend fun callOpenRouter(prompt: String): String {
+    private suspend fun callOpenRouter(prompt: String, maxTokens: Int? = null): String {
         val url = "https://openrouter.ai/api/v1/chat/completions"
         val model = openRouterModel
 
         val jsonBody = JSONObject().apply {
             put("model", model)
+            if (maxTokens != null) {
+                put("max_tokens", maxTokens)
+            }
             put("messages", JSONArray().apply {
                 put(JSONObject().apply {
                     put("role", "user")
@@ -183,7 +187,7 @@ class GeminiRepository {
                 if (!response.isSuccessful) {
                     val errorBody = response.body?.string() ?: "Unknown error"
                     Log.e("GeminiRepository", "OpenRouter API Error: $errorBody")
-                    return "Maaf, terjadi kesalahan saat menghubungi OpenRouter: $errorBody"
+                    return getFriendlyOpenRouterError(response.code, errorBody)
                 }
 
                 val responseString = response.body?.string() ?: return "Respons kosong dari server."
@@ -200,11 +204,45 @@ class GeminiRepository {
             }
         } catch (e: Exception) {
             Log.e("GeminiRepository", "OpenRouter Network exception: ${e.message}", e)
-            "Koneksi gagal: ${e.localizedMessage}. Pastikan Anda terhubung ke internet."
+            "Koneksi gagal: ${e.localizedMessage}. Silakan periksa jaringan internet Anda."
         }
     }
 
-    private suspend fun callGemini(prompt: String): String {
+    private fun getFriendlyOpenRouterError(statusCode: Int, errorBody: String): String {
+        return try {
+            val json = JSONObject(errorBody)
+            val errorObj = json.optJSONObject("error")
+            val rawMessage = errorObj?.optString("message") ?: ""
+            val rawCode = errorObj?.optInt("code") ?: statusCode
+
+            when {
+                rawMessage.contains("limit", ignoreCase = true) ||
+                rawMessage.contains("quota", ignoreCase = true) ||
+                rawMessage.contains("credit", ignoreCase = true) ||
+                rawMessage.contains("insufficient", ignoreCase = true) ||
+                rawCode == 429 || statusCode == 429 -> {
+                    "Maaf, kuota harian atau batas penggunaan gratis Asisten AI sedang penuh karena tingginya permintaan. Silakan tunggu beberapa saat atau coba lagi nanti."
+                }
+                rawMessage.contains("No endpoints found", ignoreCase = true) ||
+                rawMessage.contains("model", ignoreCase = true) ||
+                rawCode == 404 || statusCode == 404 -> {
+                    "Model kecerdasan buatan (AI) gratis ini sedang sibuk atau tidak merespons. Kami otomatis mengoptimalkan koneksi Anda, silakan coba tanyakan kembali."
+                }
+                rawMessage.contains("API key", ignoreCase = true) ||
+                rawMessage.contains("unauthorized", ignoreCase = true) ||
+                rawCode == 401 || statusCode == 401 -> {
+                    "Kunci API OpenRouter tidak terdeteksi atau tidak valid. Harap periksa kembali konfigurasi kunci API Anda di menu Pengaturan."
+                }
+                else -> {
+                    "Asisten AI Alkitab sedang mengalami kendala jaringan atau server sedang padat. Silakan coba kirim pesan Anda kembali dalam beberapa saat."
+                }
+            }
+        } catch (e: Exception) {
+            "Asisten AI sedang sibuk atau mengalami kendala koneksi sementara. Silakan coba tanyakan kembali beberapa saat lagi."
+        }
+    }
+
+    private suspend fun callGemini(prompt: String, maxTokens: Int? = null): String {
         val url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=$geminiApiKey"
 
         val jsonBody = JSONObject().apply {
@@ -217,6 +255,11 @@ class GeminiRepository {
                     })
                 })
             })
+            if (maxTokens != null) {
+                put("generationConfig", JSONObject().apply {
+                    put("maxOutputTokens", maxTokens)
+                })
+            }
         }
 
         val requestBody = jsonBody.toString().toRequestBody("application/json".toMediaType())
@@ -235,7 +278,7 @@ class GeminiRepository {
                     val hasOpenRouter = openRouterApiKey.isNotEmpty() && openRouterApiKey != "MY_OPENROUTER_API_KEY" && !openRouterApiKey.contains("PLACEHOLDER")
                     if (hasOpenRouter) {
                         Log.i("GeminiRepository", "Gemini failed, falling back to OpenRouter...")
-                        return callOpenRouter(prompt)
+                        return callOpenRouter(prompt, maxTokens)
                     }
                     return "Maaf, terjadi kesalahan saat menghubungi asisten AI Alkitab: $errorBody"
                 }
@@ -259,7 +302,7 @@ class GeminiRepository {
             val hasOpenRouter = openRouterApiKey.isNotEmpty() && openRouterApiKey != "MY_OPENROUTER_API_KEY" && !openRouterApiKey.contains("PLACEHOLDER")
             if (hasOpenRouter) {
                 Log.i("GeminiRepository", "Gemini threw network exception, falling back to OpenRouter...")
-                return callOpenRouter(prompt)
+                return callOpenRouter(prompt, maxTokens)
             }
             "Koneksi gagal: ${e.localizedMessage}. Pastikan Anda terhubung ke internet."
         }

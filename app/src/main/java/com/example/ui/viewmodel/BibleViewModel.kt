@@ -129,9 +129,12 @@ class BibleViewModel(application: Application) : AndroidViewModel(application) {
     fun navigateTo(screen: Screen) {
         currentScreen = screen
         if (screen is Screen.Reader) {
+            val sameChapter = selectedBook == screen.initialBook && selectedChapter == screen.initialChapter
             selectedBook = screen.initialBook
             selectedChapter = screen.initialChapter
-            loadChapter(selectedBook, selectedChapter)
+            if (!sameChapter || screen.initialVerse != null || _readerUiState.value !is ReaderUiState.Success) {
+                loadChapter(selectedBook, selectedChapter, screen.initialVerse)
+            }
         }
     }
 
@@ -322,8 +325,22 @@ class BibleViewModel(application: Application) : AndroidViewModel(application) {
             VerseRef("Yohanes", 14, 27, "Damai sejahtera Kutinggalkan bagimu. Damai sejahtera-Ku Kuberikan kepadamu, dan apa yang Kuberikan tidak seperti yang diberikan oleh dunia kepadamu. Janganlah gelisah dan gentar hatimu."),
             VerseRef("Matius", 6, 33, "But carilah dahulu Kerajaan Allah dan kebenarannya, maka semuanya itu akan ditambahkan kepadamu."),
             VerseRef("Roma", 12, 2, "Janganlah kamu menjadi serupa dengan dunia ini, tetapi berubahlah oleh pembaruan budimu, sehingga kamu dapat membedakan manakah kehendak Allah: apa yang baik, yang berkenan kepada Allah dan yang sempurna."),
-            VerseRef("1 Korintus", 13, 13, "Demikianlah tinggal ketiga hal ini, yaitu iman, pengharapan dan kasih, dan yang paling besar di antaranya ialah kasih.")
+            VerseRef("1 Korintus", 13, 13, "Demikianlah tinggal ketiga hal ini, yaitu iman, pengharapan dan kasih, dan yang paling besar di antaranya ialah kasih."),
+            VerseRef("Yosua", 1, 9, "Bukankah telah Kuperintahkan kepadamu: kuatkan dan teguhkanlah hatimu? Janganlah kecut dan tawar hati, sebab TUHAN, Allahmu, menyertai engkau, ke mana pun engkau pergi."),
+            VerseRef("Filipi", 4, 13, "Segala perkara dapat kutanggung di dalam Dia yang memberi kekuatan kepadaku."),
+            VerseRef("Mazmur", 119, 105, "Firman-Mu itu pelita bagi kakiku dan terang bagi jalanku."),
+            VerseRef("Yesaya", 40, 31, "tetapi orang-orang yang menanti-nantikan TUHAN mendapat kekuatan baru: mereka seumpama rajawali yang naik terbang dengan kekuatan sayapnya; mereka berlari dan tidak menjadi lesu, mereka berjalan dan tidak menjadi lelah."),
+            VerseRef("Yohanes", 16, 33, "Semuanya itu Kukatakan kepadamu, supaya kamu beroleh damai sejahtera dalam Aku. Dalam dunia kamu menderita penganiayaan, tetapi kuatkanlah hatimu, Aku telah mengalahkan dunia.")
         )
-        verseOfTheDay = comfortingVerses.random()
+        
+        // Offset by -3 hours so that the date-based selection changes at exactly 3:00 AM instead of midnight
+        val calendar = java.util.Calendar.getInstance()
+        calendar.add(java.util.Calendar.HOUR_OF_DAY, -3)
+        val year = calendar.get(java.util.Calendar.YEAR)
+        val dayOfYear = calendar.get(java.util.Calendar.DAY_OF_YEAR)
+        
+        val seed = (year * 1000) + dayOfYear
+        val index = (seed % comfortingVerses.size + comfortingVerses.size) % comfortingVerses.size
+        verseOfTheDay = comfortingVerses[index]
     }
 }

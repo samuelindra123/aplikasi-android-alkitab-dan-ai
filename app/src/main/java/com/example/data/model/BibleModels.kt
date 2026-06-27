@@ -25,7 +25,7 @@ data class VerseRef(
 
 sealed interface Screen {
     object Dashboard : Screen
-    data class Reader(val initialBook: String = "Yohanes", val initialChapter: Int = 1) : Screen
+    data class Reader(val initialBook: String = "Yohanes", val initialChapter: Int = 1, val initialVerse: Int? = null) : Screen
     object AIAssistant : Screen
     object NotesAndBookmarks : Screen
     object Settings : Screen

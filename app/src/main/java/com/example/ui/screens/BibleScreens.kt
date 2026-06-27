@@ -82,7 +82,7 @@ fun BibleAppMain(viewModel: BibleViewModel) {
                 )
                 NavigationBarItem(
                     selected = currentScreen is Screen.Reader,
-                    onClick = { viewModel.navigateTo(Screen.Reader()) },
+                    onClick = { viewModel.navigateTo(Screen.Reader(viewModel.selectedBook, viewModel.selectedChapter)) },
                     icon = { Icon(Icons.Default.Book, contentDescription = "Alkitab") },
                     label = { Text("Alkitab", fontSize = 11.sp) },
                     modifier = Modifier.testTag("nav_reader")
@@ -567,7 +567,7 @@ fun SearchDialog(viewModel: BibleViewModel, onDismiss: () -> Unit) {
                                         .fillMaxWidth()
                                         .clickable {
                                             onDismiss()
-                                            viewModel.navigateTo(Screen.Reader(res.book, res.chapter))
+                                            viewModel.navigateTo(Screen.Reader(res.book, res.chapter, res.verseNumber))
                                         },
                                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                                     shape = RoundedCornerShape(12.dp)
@@ -1758,7 +1758,7 @@ fun NotesAndBookmarksScreen(viewModel: BibleViewModel) {
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable {
-                                        viewModel.navigateTo(Screen.Reader(mark.book, mark.chapter))
+                                        viewModel.navigateTo(Screen.Reader(mark.book, mark.chapter, mark.verseNumber))
                                     },
                                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                             ) {
@@ -1826,7 +1826,7 @@ fun NotesAndBookmarksScreen(viewModel: BibleViewModel) {
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable {
-                                        viewModel.navigateTo(Screen.Reader(note.book, note.chapter))
+                                        viewModel.navigateTo(Screen.Reader(note.book, note.chapter, note.verseNumber))
                                     },
                                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                             ) {
