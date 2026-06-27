@@ -148,7 +148,7 @@ tasks.register<Copy>("copyApkToRoot") {
     dependsOn("assembleDebug")
     from(layout.buildDirectory.file("outputs/apk/debug/app-debug.apk"))
     into(rootProject.layout.projectDirectory.dir("apk_output"))
-    rename { "Alkitab-AI.apk" }
+    rename { "app-debug.apk" }
 }
 
 tasks.register<Copy>("copyApkToBuildOutputs") {
