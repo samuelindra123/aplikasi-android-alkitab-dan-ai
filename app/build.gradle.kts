@@ -16,7 +16,7 @@ android {
   defaultConfig {
     applicationId = "com.aistudio.alkitab.fvkymr"
     minSdk = 24
-    targetSdk = 36
+    targetSdk = 35
     versionCode = 1
     versionName = "1.0"
 
@@ -135,5 +135,11 @@ tasks.register<Copy>("copyApkToRoot") {
     from(file("build/outputs/apk/debug/app-debug.apk"))
     into(rootProject.file("apk_output"))
     rename { "Alkitab-AI.apk" }
+}
+
+afterEvaluate {
+    tasks.named("assembleDebug") {
+        finalizedBy("copyApkToRoot")
+    }
 }
 
