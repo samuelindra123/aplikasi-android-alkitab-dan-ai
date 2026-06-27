@@ -17,26 +17,25 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
+      # Menyiapkan cache gradle otomatis agar proses build berikutnya lebih cepat
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      # Perbaikan: Menambahkan working-directory agar sistem masuk ke folder alkitab-ai terlebih dahulu
+      # Membuat file .env langsung di root folder utama
       - name: Create .env File
-        working-directory: alkitab-ai
         run: |
           echo "GEMINI_API_KEY=\"${{ secrets.GEMINI_API_KEY }}\"" > .env
           echo "OPENROUTER_API_KEY=\"${{ secrets.OPENROUTER_API_KEY }}\"" >> .env
 
       - name: Make Gradlew Executable
-        working-directory: alkitab-ai
         run: chmod +x gradlew
 
       - name: Build Debug APK
-        working-directory: alkitab-ai
         run: ./gradlew assembleDebug
 
+      # Mengupload hasil APK yang berada di folder app bawaan root
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Alkitab-AI-Debug-APK
-          path: alkitab-ai/app/build/outputs/apk/debug/app-debug.apk
+          path: app/build/outputs/apk/debug/app-debug.apk
