@@ -12,6 +12,7 @@
 /build
 /captures
 !/apk_output/
+!/.build-outputs/
 
 .externalNativeBuild
 .cxx

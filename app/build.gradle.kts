@@ -146,14 +146,21 @@ dependencies {
 
 tasks.register<Copy>("copyApkToRoot") {
     dependsOn("assembleDebug")
-    from(file("build/outputs/apk/debug/app-debug.apk"))
-    into(rootProject.file("apk_output"))
+    from(layout.buildDirectory.file("outputs/apk/debug/app-debug.apk"))
+    into(rootProject.layout.projectDirectory.dir("apk_output"))
     rename { "Alkitab-AI.apk" }
+}
+
+tasks.register<Copy>("copyApkToBuildOutputs") {
+    dependsOn("assembleDebug")
+    from(layout.buildDirectory.file("outputs/apk/debug/app-debug.apk"))
+    into(rootProject.layout.projectDirectory.dir(".build-outputs"))
+    rename { "app-debug.apk" }
 }
 
 afterEvaluate {
     tasks.named("assembleDebug") {
-        finalizedBy("copyApkToRoot")
+        finalizedBy("copyApkToRoot", "copyApkToBuildOutputs")
     }
 }
 
