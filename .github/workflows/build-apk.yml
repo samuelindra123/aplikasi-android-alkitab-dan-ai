@@ -20,11 +20,12 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      # Membuat file .env langsung di dalam folder alkitab-ai
+      # Perbaikan: Menambahkan working-directory agar sistem masuk ke folder alkitab-ai terlebih dahulu
       - name: Create .env File
+        working-directory: alkitab-ai
         run: |
-          echo "GEMINI_API_KEY=\"${{ secrets.GEMINI_API_KEY }}\"" > alkitab-ai/.env
-          echo "OPENROUTER_API_KEY=\"${{ secrets.OPENROUTER_API_KEY }}\"" >> alkitab-ai/.env
+          echo "GEMINI_API_KEY=\"${{ secrets.GEMINI_API_KEY }}\"" > .env
+          echo "OPENROUTER_API_KEY=\"${{ secrets.OPENROUTER_API_KEY }}\"" >> .env
 
       - name: Make Gradlew Executable
         working-directory: alkitab-ai
