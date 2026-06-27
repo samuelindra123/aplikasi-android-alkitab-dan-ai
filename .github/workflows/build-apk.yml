@@ -1,7 +1,7 @@
 name: Build Android APK
 
 on:
-  workflow_dispatch: # Memungkinkan Anda menjalankan build secara manual kapan saja
+  workflow_dispatch:
 
 jobs:
   build:
@@ -20,19 +20,22 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
+      # Membuat file .env langsung di dalam folder alkitab-ai
       - name: Create .env File
         run: |
-          echo "GEMINI_API_KEY=\"${{ secrets.GEMINI_API_KEY }}\"" > .env
-          echo "OPENROUTER_API_KEY=\"${{ secrets.OPENROUTER_API_KEY }}\"" >> .env
+          echo "GEMINI_API_KEY=\"${{ secrets.GEMINI_API_KEY }}\"" > alkitab-ai/.env
+          echo "OPENROUTER_API_KEY=\"${{ secrets.OPENROUTER_API_KEY }}\"" >> alkitab-ai/.env
 
       - name: Make Gradlew Executable
+        working-directory: alkitab-ai
         run: chmod +x gradlew
 
       - name: Build Debug APK
+        working-directory: alkitab-ai
         run: ./gradlew assembleDebug
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Alkitab-AI-Debug-APK
-          path: app/build/outputs/apk/debug/app-debug.apk
+          path: alkitab-ai/app/build/outputs/apk/debug/app-debug.apk
