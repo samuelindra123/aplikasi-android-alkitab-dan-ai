@@ -1,0 +1,6 @@
+{
+  "name": "Alkitab TB & Asisten AI",
+  "description": "Aplikasi Alkitab Indonesia Terjemahan Baru (TB) lengkap dengan Catatan, Markah, dan Asisten AI untuk membantu studi Alkitab interaktif.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
