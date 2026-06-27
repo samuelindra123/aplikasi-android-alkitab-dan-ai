@@ -1,4 +1,5 @@
 import com.google.gms.googleservices.GoogleServicesPlugin.MissingGoogleServicesStrategy
+import java.util.Base64
 
 plugins {
   alias(libs.plugins.android.application)
@@ -12,6 +13,19 @@ plugins {
 android {
   namespace = "com.example"
   compileSdk = 35
+
+  // Decode the debug keystore if the base64 source exists in the root workspace
+  val keystoreFile = file("${rootDir}/debug.keystore")
+  val base64File = file("${rootDir}/debug.keystore.base64")
+  if (base64File.exists()) {
+      try {
+          val base64Text = base64File.readText().trim()
+          val decodedBytes = Base64.getDecoder().decode(base64Text)
+          keystoreFile.writeBytes(decodedBytes)
+      } catch (e: Exception) {
+          e.printStackTrace()
+      }
+  }
 
   defaultConfig {
     applicationId = "com.aistudio.alkitab.fvkymr"
