@@ -145,14 +145,12 @@ dependencies {
 }
 
 tasks.register<Copy>("copyApkToRoot") {
-    dependsOn("assembleDebug")
     from(layout.buildDirectory.file("outputs/apk/debug/app-debug.apk"))
     into(rootProject.layout.projectDirectory.dir("apk_output"))
     rename { "app-debug.apk" }
 }
 
 tasks.register<Copy>("copyApkToBuildOutputs") {
-    dependsOn("assembleDebug")
     from(layout.buildDirectory.file("outputs/apk/debug/app-debug.apk"))
     into(rootProject.layout.projectDirectory.dir(".build-outputs"))
     rename { "app-debug.apk" }
