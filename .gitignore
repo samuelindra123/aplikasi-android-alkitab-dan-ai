@@ -11,6 +11,8 @@
 .DS_Store
 /build
 /captures
+!/apk_output/
+
 .externalNativeBuild
 .cxx
 local.properties

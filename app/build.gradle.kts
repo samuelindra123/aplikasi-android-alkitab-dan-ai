@@ -129,3 +129,11 @@ dependencies {
   "ksp"(libs.androidx.room.compiler)
   "ksp"(libs.moshi.kotlin.codegen)
 }
+
+tasks.register<Copy>("copyApkToRoot") {
+    dependsOn("assembleDebug")
+    from(file("build/outputs/apk/debug/app-debug.apk"))
+    into(rootProject.file("apk_output"))
+    rename { "Alkitab-AI.apk" }
+}
+
